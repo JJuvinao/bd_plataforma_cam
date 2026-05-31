@@ -158,15 +158,25 @@ def listar_usuarios(
 ):
     return db.query(Usuario).all()
 
-@router.get("/{usuario_id}", response_model=UsuarioResponse)
-def obtener_usuario_por_id(
-    usuario_id: int,
+@router.get("/mi-documento/{numeroDocumento}", response_model=UsuarioResponse)
+def obtener_usuario_por_documento_publico(
+    numeroDocumento: str,
     db: Session = Depends(get_db),
-    current_user: Usuario = Depends(verificar_roles([RolUsuario.ADMIN]))
+    current_user: Usuario = Depends(get_current_user)
 ):
-    usuario = db.query(Usuario).filter(Usuario.id == usuario_id).first()
+    # Si no es ADMIN, solo puede ver su propio documento
+    if current_user.roles != RolUsuario.ADMIN and current_user.numeroDocumento != numeroDocumento:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="No tienes permiso para ver este usuario"
+        )
+    
+    usuario = db.query(Usuario).filter(Usuario.numeroDocumento == numeroDocumento).first()
     if not usuario:
-        raise HTTPException(status_code=404, detail="Usuario no encontrado")
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, 
+            detail=f"Usuario con número de documento {numeroDocumento} no encontrado"
+        )
     return usuario
 
 @router.delete("/{usuario_id}")
