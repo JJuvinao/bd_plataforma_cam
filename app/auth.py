@@ -47,8 +47,8 @@ def decode_access_token(token: str) -> Dict[str, Any]:
         )
 
 # ---------- Funciones de Autenticación ----------
-def authenticate_user(db: Session, numeroDocumento: str, password: str):
-    user = db.query(Usuario).filter(Usuario.numeroDocumento == numeroDocumento).first()
+def authenticate_user(db: Session, correo: str, password: str):
+    user = db.query(Usuario).filter(Usuario.correo == correo).first()
     if not user or not verify_password(password, user.hashed_password):
         return False
     return user
@@ -75,23 +75,23 @@ async def get_current_user(
     try:
         # Decodificar token
         payload = decode_access_token(token)
-        numeroDocumento: str = payload.get("sub")
-        
-        if numeroDocumento is None:
+        correo: str = payload.get("sub")
+
+        if correo is None:
             raise HTTPException(
                 status_code=status.HTTP_401_UNAUTHORIZED,
                 detail="Token no contiene información de usuario",
             )
-        
+
         # Buscar usuario en la base de datos
-        user = db.query(Usuario).filter(Usuario.numeroDocumento == numeroDocumento).first()
-        
+        user = db.query(Usuario).filter(Usuario.correo == correo).first()
+
         if user is None:
             raise HTTPException(
                 status_code=status.HTTP_401_UNAUTHORIZED,
                 detail="Usuario no encontrado",
             )
-        
+
         return user
         
     except HTTPException:

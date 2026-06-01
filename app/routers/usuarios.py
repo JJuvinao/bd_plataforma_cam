@@ -56,15 +56,15 @@ def registrar_usuario(usuario: UsuarioCreate, db: Session = Depends(get_db)):
 
 @router.post("/login", response_model=TokenResponse)
 def login(login_data: LoginRequest, db: Session = Depends(get_db)):
-    user = authenticate_user(db, login_data.numeroDocumento, login_data.password)
-    
+    user = authenticate_user(db, login_data.correo, login_data.password)
+
     if not user:
-        raise HTTPException(status_code=401, detail="Número de documento o contraseña incorrectos")
-    
+        raise HTTPException(status_code=401, detail="Correo o contraseña incorrectos")
+
     access_token_expires = timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
     access_token = create_access_token(
         data={
-            "sub": user.numeroDocumento,
+            "sub": user.correo,
             "id": user.id,
             "nombres": user.nombres,
             "apellidos": user.apellidos,
@@ -73,9 +73,9 @@ def login(login_data: LoginRequest, db: Session = Depends(get_db)):
         },
         expires_delta=access_token_expires
     )
-    
+
     usuario_response = UsuarioResponse.model_validate(user)
-    
+
     return {
         "access_token": access_token,
         "token_type": "bearer",
@@ -86,14 +86,14 @@ def login(login_data: LoginRequest, db: Session = Depends(get_db)):
 @router.post("/login-form", response_model=TokenResponse)
 def login_form_swagger(form_data: OAuth2PasswordRequestForm = Depends(), db: Session = Depends(get_db)):
     user = authenticate_user(db, form_data.username, form_data.password)
-    
+
     if not user:
-        raise HTTPException(status_code=401, detail="Número de documento o contraseña incorrectos")
-    
+        raise HTTPException(status_code=401, detail="Correo o contraseña incorrectos")
+
     access_token_expires = timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
     access_token = create_access_token(
         data={
-            "sub": user.numeroDocumento,
+            "sub": user.correo,
             "id": user.id,
             "nombres": user.nombres,
             "apellidos": user.apellidos,
@@ -102,9 +102,9 @@ def login_form_swagger(form_data: OAuth2PasswordRequestForm = Depends(), db: Ses
         },
         expires_delta=access_token_expires
     )
-    
+
     usuario_response = UsuarioResponse.model_validate(user)
-    
+
     return {
         "access_token": access_token,
         "token_type": "bearer",

@@ -36,7 +36,7 @@ class UsuarioUpdate(BaseModel):
     roles: Optional[RolUsuario] = None
 
 class LoginRequest(BaseModel):
-    numeroDocumento: str
+    correo: EmailStr = Field(..., description="Correo electrónico")
     password: str
 
 class TokenResponse(BaseModel):
